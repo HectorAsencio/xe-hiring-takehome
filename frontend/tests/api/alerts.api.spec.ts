@@ -135,7 +135,7 @@ test.describe('DELETE /api/alerts', () => {
   })
 })
 
-test.describe('Unsupported HTTP methods for /api/alerts', () => {
+test.describe('Unsupported HTTP for /api/alerts', () => {
   test('PUT returns 405', async ({ request }) => {
     const response = await request.put('/api/alerts', {
       data: {

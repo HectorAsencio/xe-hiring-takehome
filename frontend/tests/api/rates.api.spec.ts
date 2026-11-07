@@ -30,29 +30,31 @@ function assertRates(payload: unknown): asserts payload is Rate[] {
   }
 }
 
-test('GET /api/rates returns a valid rates list', async ({ request }) => {
-  const ratesApi = new RatesApi(request)
-  const response = await ratesApi.getRates()
+test.describe('Rates API', () => {
+  test('GET /api/rates returns a valid rates list', async ({ request }) => {
+    const ratesApi = new RatesApi(request)
+    const response = await ratesApi.getRates()
 
-  expect(response.status()).toBe(200)
-  expect(response.headers()['content-type']).toContain('application/json')
+    expect(response.status()).toBe(200)
+    expect(response.headers()['content-type']).toContain('application/json')
 
-  const payload: unknown = await response.json()
-  assertRates(payload)
+    const payload: unknown = await response.json()
+    assertRates(payload)
 
-  expect(payload.length).toBeGreaterThan(0)
+    expect(payload.length).toBeGreaterThan(0)
 
-  for (const { rate } of payload) {
-    expect(rate).toBeGreaterThan(0)
+    for (const { rate } of payload) {
+      expect(rate).toBeGreaterThan(0)
 
-    const fractionalPrecision = Math.abs(rate * 10_000 - Math.round(rate * 10_000))
-    expect(fractionalPrecision).toBeLessThan(1e-7)
-  }
-})
+      const fractionalPrecision = Math.abs(rate * 10_000 - Math.round(rate * 10_000))
+      expect(fractionalPrecision).toBeLessThan(1e-7)
+    }
+  })
 
-test('POST /api/rates is not an allowed method', async ({ request }) => {
-  const ratesApi = new RatesApi(request)
-  const response = await ratesApi.postRates()
+  test('POST /api/rates is not an allowed method', async ({ request }) => {
+    const ratesApi = new RatesApi(request)
+    const response = await ratesApi.postRates()
 
-  expect(response.status()).toBe(405)
+    expect(response.status()).toBe(405)
+  })
 })
