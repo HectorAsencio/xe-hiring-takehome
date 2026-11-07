@@ -11,3 +11,9 @@ dist/
 .idea/
 .DS_Store
 *.user
+
+# Playwright
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
+frontend/playwright/.cache/
