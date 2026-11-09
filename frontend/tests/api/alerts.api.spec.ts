@@ -75,17 +75,21 @@ test.describe('POST /api/alerts', () => {
     })
   }
 
-  test('rejects an unsupported pair', async ({ request }) => {
-    const response = await request.post('/api/alerts', {
-      data: {
-        pair: 'AUD/USD',
-        threshold: 1,
-        direction: 'above',
-      },
-    })
+  const unsupportedPairs = ['AUD/USD', 'USD/JPY', 'CAD/CHF'] as const
 
-    expect(response.status()).toBe(400)
-  })
+  for (const pair of unsupportedPairs) {
+    test(`rejects unsupported pair "${pair}"`, async ({ request }) => {
+      const response = await request.post('/api/alerts', {
+        data: {
+          pair,
+          threshold: 1,
+          direction: 'above',
+        },
+      })
+
+      expect(response.status()).toBe(400)
+    })
+  }
 
   test('rejects an unsupported direction', async ({ request }) => {
     const response = await request.post('/api/alerts', {
