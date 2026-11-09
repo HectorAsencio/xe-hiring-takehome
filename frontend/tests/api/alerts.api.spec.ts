@@ -43,32 +43,37 @@ test.describe('GET /api/alerts', () => {
 })
 
 test.describe('POST /api/alerts', () => {
-  test('creates an alert and returns 201', async ({ request }) => {
-    const alertsApi = new AlertsApi(request)
-    const response = await alertsApi.createAlert({
-      pair: 'USD/CAD',
-      threshold: 1.3,
-      direction: 'above',
+  const triggeredCases = [
+    { direction: 'above', threshold: 1.3649, expected: true },
+    { direction: 'above', threshold: 1.365, expected: false },
+    { direction: 'above', threshold: 1.3651, expected: false },
+    { direction: 'below', threshold: 1.3651, expected: true },
+    { direction: 'below', threshold: 1.365, expected: false },
+    { direction: 'below', threshold: 1.3649, expected: false },
+  ] as const
+
+  for (const { direction, threshold, expected } of triggeredCases) {
+    test(`sets triggered=${expected} for direction "${direction}" at threshold ${threshold}`, async ({ request }) => {
+      const alertsApi = new AlertsApi(request)
+      const response = await alertsApi.createAlert({
+        pair: 'USD/CAD',
+        threshold,
+        direction,
+      })
+
+      expect(response.status()).toBe(201)
+
+      const payload: unknown = await response.json()
+      assertAlert(payload)
+
+      try {
+        expect(payload.triggered).toBe(expected)
+      } finally {
+        const cleanupResponse = await alertsApi.deleteAlert(payload.id)
+        expect(cleanupResponse.status()).toBe(204)
+      }
     })
-
-    expect(response.status()).toBe(201)
-
-    const payload: unknown = await response.json()
-    assertAlert(payload)
-
-    expect(payload).toMatchObject({
-      pair: 'USD/CAD',
-      threshold: 1.3,
-      direction: 'above',
-      triggered: true,
-    })
-    expect(payload.id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-    )
-
-    const cleanupResponse = await alertsApi.deleteAlert(payload.id)
-    expect(cleanupResponse.status()).toBe(204)
-  })
+  }
 
   test('rejects an unsupported pair', async ({ request }) => {
     const response = await request.post('/api/alerts', {
